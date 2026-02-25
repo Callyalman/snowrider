@@ -1,0 +1,164 @@
+<Module>
+<Content type="html">
+<![CDATA[
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #231F20;
+}
+#unity-container {
+  width: 100%;
+  height: 100%;
+}
+#unity-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#loading-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #231F20;
+  z-index: 9999;
+}
+#progress-container {
+  width: 40%;
+  height: 24px;
+  background: #555;
+  border: 1px solid #fff;
+  padding: 2px;
+}
+#progress-fill {
+  width: 0%;
+  height: 100%;
+  background: white;
+  transition: width 0.2s;
+}
+</style>
+</head>
+
+<body>
+<div id="unity-container">
+  <canvas id="unity-canvas"></canvas>
+</div>
+
+<div id="loading-cover">
+  <div id="progress-container">
+    <div id="progress-fill"></div>
+  </div>
+</div>
+
+<script>
+const progressFill = document.getElementById("progress-fill");
+const loadingCover = document.getElementById("loading-cover");
+
+function setProgress(value){
+  progressFill.style.width = (value * 100) + "%";
+}
+
+async function mergeUnityWebFiles(baseUrl, filePrefix, totalParts, extension, onProgress) {
+  const partUrls = Array.from({ length: totalParts }, (_, i) =>
+    `${baseUrl}/${filePrefix}${i + 1}.${extension}`
+  );
+
+  let totalSize = 0;
+  for (const url of partUrls) {
+    const head = await fetch(url, { method: "HEAD" });
+    const len = head.headers.get("Content-Length");
+    if (len) totalSize += parseInt(len, 10);
+  }
+
+  const buffers = [];
+  let downloaded = 0;
+
+  for (const url of partUrls) {
+    const res = await fetch(url);
+    const reader = res.body.getReader();
+    const chunks = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      downloaded += value.length;
+      if (onProgress) onProgress(downloaded / totalSize * 0.5);
+    }
+
+    const full = new Uint8Array(chunks.reduce((a,b)=>a+b.length,0));
+    let offset = 0;
+    for (const chunk of chunks) {
+      full.set(chunk, offset);
+      offset += chunk.length;
+    }
+    buffers.push(full);
+  }
+
+  const final = new Uint8Array(buffers.reduce((a,b)=>a+b.byteLength,0));
+  let offset = 0;
+  for (const b of buffers) {
+    final.set(b, offset);
+    offset += b.byteLength;
+  }
+
+  return final;
+}
+
+async function initializeGame() {
+  const baseUrl = "https://cdn.jsdelivr.net/gh/goldie-code/specification@c351c9358400eeeb6a447895ae2c6877c44e4cd0/util";
+  const loaderUrl = "https://cdn.jsdelivr.net/gh/goldie-code/tech@fccf9d4285000098e10a6448198ef92560a6294c/plug/src/main/loader.js";
+
+  try {
+    const wasmBuffer = await mergeUnityWebFiles(baseUrl, "set", 2, "js", setProgress);
+    const wasmBlob = new Blob([wasmBuffer], { type: "application/wasm" });
+    const wasmUrl = URL.createObjectURL(wasmBlob);
+
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+
+    script.onload = () => {
+      const config = {
+        dataUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@fccf9d4285000098e10a6448198ef92560a6294c/plug/src/main/libdata.js",
+        frameworkUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@cad464f628ac347e8e4795c577b7123593ac1b34/plug/src/main/lib.js",
+        codeUrl: wasmUrl,
+        streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@db7a45ffce94f072135646449c115dcead54c3fd/plug/src/main/resources/META-INF/gradle-plugins",
+      };
+
+      createUnityInstance(
+        document.getElementById("unity-canvas"),
+        config,
+        (unityProgress) => {
+          setProgress(0.5 + unityProgress * 0.5);
+        }
+      ).then(() => {
+        loadingCover.style.display = "none";
+      });
+    };
+
+    document.body.appendChild(script);
+  } catch (e) {
+    console.error("Game load failed:", e);
+  }
+}
+
+initializeGame();
+</script>
+
+</body>
+</html>
+]]>
+</Content>
+</Module>
