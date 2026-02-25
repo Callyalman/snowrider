@@ -1,0 +1,112 @@
+<Module>
+<Content type="html">
+<![CDATA[
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #231F20; }
+#unity-container { width: 100%; height: 100%; position: relative; }
+#unity-canvas { width: 100%; height: 100%; background: #231F20; display: block; }
+#loading-cover { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column; background-color: #231F20; z-index: 9999; }
+#progress-container { width: 40%; height: 24px; background: #555; border: 1px solid #fff; padding: 2px; }
+#progress-fill { width: 0%; height: 100%; background: white; transition: width 0.2s; }
+</style>
+</head>
+<body>
+<div id="unity-container">
+    <canvas id="unity-canvas" style="cursor: default;" width="787" height="511"></canvas>
+</div>
+<div id="loading-cover">
+    <div id="progress-container">
+        <div id="progress-fill"></div>
+    </div>
+</div>
+
+<script>
+(function(){
+    // Mute console logs
+    window.console = { log:()=>{}, warn:()=>{}, error:()=>{}, info:()=>{}, debug:()=>{}, trace:()=>{}, table:()=>{}, assert:()=>{} };
+
+    var myGameInstance = null;
+    var environmentData = 'no data';
+    var playerData = 'no data';
+    window.environmentData = environmentData;
+
+    // Force language to English
+    try { Object.defineProperty(navigator, 'language', { get: () => 'en-US', configurable: true }); } catch{}
+    try { Object.defineProperty(navigator, 'languages', { get: () => ['en-US','en'], configurable: true }); } catch{}
+    try { document.documentElement.lang = 'en'; } catch{}
+
+    function RequestingEnvironmentData(){
+        const isM = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const json = JSON.stringify({
+            language: 'en', domain:'com', deviceType: isM?'mobile':'desktop', 
+            isMobile:isM, isDesktop:!isM, isTablet:/iPad|Tablet/i.test(navigator.userAgent), 
+            isTV:false, appID:'stub.app.id', browserLang:'en', payload:null, platform:navigator.platform, browser:'Other'
+        });
+        environmentData = json;
+        window.environmentData = json;
+    }
+
+    function InitPlayer(){
+        const data = JSON.stringify({
+            playerAuth:'rejected', playerName:'unauthorized', playerId:'unauthorized', playerPhoto:'null', payingStatus:'unknown'
+        });
+        playerData = data;
+    }
+
+    const progressFill = document.getElementById("progress-fill");
+    const loadingCover = document.getElementById("loading-cover");
+    function setProgress(value){ progressFill.style.width = `${Math.min(value*100, 100)}%`; }
+
+    async function mergeUnityWebFiles(baseUrl, filePrefix, totalParts, extension, onProgress) {
+        const partUrls = Array.from({ length: totalParts }, (_, i) => `${baseUrl}/${filePrefix}${i + 1}.${extension}`);
+        const buffers = [];
+        for (const url of partUrls) {
+            const res = await fetch(url);
+            const arrayBuffer = await res.arrayBuffer();
+            buffers.push(new Uint8Array(arrayBuffer));
+            onProgress && onProgress(buffers.length / totalParts * 0.5);
+        }
+        const final = new Uint8Array(buffers.reduce((a,b)=>a+b.byteLength,0));
+        let offset = 0;
+        for (const b of buffers){ final.set(b, offset); offset += b.byteLength; }
+        return final;
+    }
+
+    async function initializeGame() {
+        const baseUrl = "https://cdn.jsdelivr.net/gh/goldie-code/specification@c351c9358400eeeb6a447895ae2c6877c44e4cd0/util";
+        const loaderUrl = "https://cdn.jsdelivr.net/gh/goldie-code/tech@fccf9d4285000098e10a6448198ef92560a6294c/plug/src/main/loader.js";
+        try {
+            const wasmBuffer = await mergeUnityWebFiles(baseUrl, "set", 2, "js", setProgress);
+            const wasmBlob = new Blob([wasmBuffer], { type: "application/wasm" });
+            const wasmUrl = URL.createObjectURL(wasmBlob);
+            const script = document.createElement("script");
+            script.src = loaderUrl;
+            script.onload = async () => {
+                const config = {
+                    dataUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@fccf9d4285000098e10a6448198ef92560a6294c/plug/src/main/libdata.js",
+                    frameworkUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@cad464f628ac347e8e4795c577b7123593ac1b34/plug/src/main/lib.js",
+                    codeUrl: wasmUrl,
+                    streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@db7a45ffce94f072135646449c115dcead54c3fd/plug/src/main/resources/META-INF/gradle-plugins"
+                };
+                const canvas = document.getElementById("unity-canvas");
+                createUnityInstance(canvas, config, (unityProgress) => { setProgress(0.5 + unityProgress*0.5); })
+                    .then(instance => { myGameInstance = instance; loadingCover.style.display = "none"; RequestingEnvironmentData(); InitPlayer(); })
+                    .catch(err => console.error("Unity create failed", err));
+            };
+            document.body.appendChild(script);
+        } catch(e){ console.error("WASM merge failed", e); }
+    }
+
+    initializeGame();
+})();
+</script>
+</body>
+</html>
+]]>
+</Content>
+</Module>
