@@ -2,9 +2,13 @@
 <Module>
 <Content type="html"><![CDATA[
 
+
 <!DOCTYPE html>
-<html lang="en">
-<head>
+
+
+<!-- Ultimate Game Stash file--> 
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
@@ -55,14 +59,20 @@
       background: white;
       transition: width 0.2s;
     }
-  </style>
-
-  <script type="text/javascript">
+  </style><script type="text/javascript">
     window.SDK_OPTIONS = {
         gameId: "r2tzpy9cgrn2u4xgzc9z0zbtvxm16mby",
-        onEvent: function (a) {}
+        onEvent: function (a) {
+            switch (a.name) {
+                case "SDK_GAME_PAUSE":
+                    break;
+                case "SDK_GAME_START":
+                    break;
+                case "SDK_READY":
+                    break;
+            }
+        }
     };
-
     (function (a, b, c) {
         var d = a.getElementsByTagName(b)[0];
         if (!a.getElementById(c)) {
@@ -72,11 +82,44 @@
             d.parentNode.insertBefore(e, d);
         }
     })(document, "script", "gamemonetize-sdk");
-  </script>
+</script><style type="text/css">#button {
+  display:none;
+}
+.imgb_vis {
+  animation: imgb-animation 7s linear;
+}
+@keyframes imgb-animation {
+  10% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(100px);
+  }
+  90% {
+    transform: translateX(100px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}</style><script type="text/javascript">
+              window.yandexMetricaCounterId = parseInt(102300209);
+          </script><script type="text/javascript">
+              (function (m, e, t, r, i, k, a) {
+                  m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+                  m[i].l = 1 * new Date();
+                  for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+                  k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+              })(window, document, "script", "", "ym");
+  
+              ym(window.yandexMetricaCounterId, "init", {
+                  clickmap: false,
+                  trackLinks: true,
+                  accurateTrackBounce: true
+              });
+          </script></head>
 
-</head>
+
 <body>
-
   <div id="unity-container">
     <canvas id="unity-canvas" style="cursor: default;" width="787" height="511"></canvas>
   </div>
@@ -99,19 +142,22 @@
     table: function () {},
     assert: function () {},
 }})();
+const muteConsole = true;
+if (muteConsole) { console.log = console.warn = console.error = console.info = console.debug = ()=>{}; }
 
 var myGameInstance = null;
 var environmentData = 'no data';
 window.environmentData = environmentData;
 var reviewData = 'false';
+
 var cloudSaves   = 'no data';
 var paymentsData = 'no data';
 var playerData   = 'no data';
-let flagsData = 'no data';
+let flasgsData = 'no data';
 var gameLabelData = 'false';
 let allGamesData = 'no data';
 var statsSaves = 'no data';
-var player = null, payments = null, initGame = false;
+var player = null, payments = null, initGame = false, nowFullAdOpen = false;
 
 try {
   Object.defineProperty(navigator, 'language',  { get: () => 'en-US', configurable: true });
@@ -130,14 +176,20 @@ try { document.documentElement.lang = 'en'; } catch{}
       const obj = {
         environment: { i18n:{ lang:FORCED_LANG, tld:'com' }, app:{ id:'stub.app.id' }, browser:{ lang:FORCED_LANG }, payload:null },
         deviceInfo:  { type:isM?'mobile':'desktop', isMobile:()=>isM, isDesktop:()=>!isM, isTablet:()=>/iPad|Tablet/i.test(navigator.userAgent), isTV:()=>false },
-        screen:      { fullscreen:{ status:'off', request(){ this.status='on'; } } },
-        features: { LoadingAPI: { ready(){ } } },
+        features: { LoadingAPI: { ready(){   } } },
         serverTime: () => Date.now(), 
-        feedback: { canReview: () => Promise.resolve({ value:false }), requestReview: () => Promise.resolve({ feedbackSent:false }) },
+        feedback: {
+          canReview:     () => Promise.resolve({ value:false }),
+          requestReview: () => Promise.resolve({ feedbackSent:false })
+        },
         auth: { openAuthDialog: () => Promise.resolve() },
-        getPlayer: () => Promise.resolve({ getMode: ()=>'lite', getName: ()=> 'Guest', getPhoto: ()=> '', getUniqueID: ()=> 'guest123', getPayingStatus: ()=> 'unknown', setData: ()=>{}, getData: ()=> Promise.resolve({ saves: [] }) }),
-        getPayments: () => Promise.reject(new Error('payments-unavailable')),
-        getLeaderboards: () => Promise.reject(new Error('leaderboards-unavailable'))
+        getPlayer: () => Promise.resolve({
+          getMode: ()=>'lite', getName: ()=> 'Guest', getPhoto: ()=> '',
+          getUniqueID: ()=> 'guest123', getPayingStatus: ()=> 'unknown',
+          setData: ()=>{}, getData: ()=> Promise.resolve({ saves: [] })
+        }),
+        getPayments:     () => Promise.reject(new Error('payments-unavailable')),
+        getLeaderboards: () => Promise.reject(new Error('leaderboards-unavailable')),
       };
       window.ysdk = obj;
       return obj;
@@ -152,6 +204,7 @@ function sendYG(method, arg){
                        : myGameInstance?.SendMessage('YandexGame', method, String(arg)); }catch{}
 }
 
+function LogStyledMessage(msg, style){ try{ console.log('%c'+(msg??''), style||'color:#FFDF73;background:#454545'); }catch{ console.log(msg); } }
 function RequestingEnvironmentData(){
   const isM = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const json = JSON.stringify({
@@ -163,7 +216,6 @@ function RequestingEnvironmentData(){
   environmentData = json; window.environmentData = json;
   sendYG('SetEnvirData', json);
 }
-
 function InitPlayer(){
   const data = JSON.stringify({
     playerAuth:'rejected', playerName:'unauthorized',
@@ -172,7 +224,6 @@ function InitPlayer(){
   playerData = data;
   sendYG('SetAuth', data);
 }
-
 function LoadCloud(){ cloudSaves = 'no data'; sendYG('SetLoadSaves','no data'); }
 function InitReview(){ reviewData = 'false'; }
 function Review(){}
@@ -180,6 +231,7 @@ function Review(){}
 window._InitEnvironmentData_js = function(){ try{ RequestingEnvironmentData(); }catch{} };
 window._InitPlayer_js          = function(){ try{ InitPlayer(); }catch{} };
 window._LoadCloud_js           = function(){ try{ LoadCloud(); }catch{} };
+window._OpenAuthDialog_js      = function(){ try{ OpenAuthDialog(); }catch{} };
 
 const progressFill  = document.getElementById("progress-fill");
 const loadingCover  = document.getElementById("loading-cover");
@@ -236,6 +288,7 @@ async function initializeGame() {
     script.src = loaderUrl;
     script.onload = async () => {
       try { await window.YaGames.init(); } catch {}
+
       const config = {
         dataUrl:      "https://cdn.jsdelivr.net/gh/goldie-code/tech@fccf9d4285000098e10a6448198ef92560a6294c/plug/src/main/libdata.js",
         frameworkUrl: "https://cdn.jsdelivr.net/gh/goldie-code/tech@cad464f628ac347e8e4795c577b7123593ac1b34/plug/src/main/lib.js",
@@ -269,12 +322,10 @@ function GetPayments(sendback) {}
 function OpenAuthDialog(){ if(myGameInstance){ myGameInstance.SendMessage('YandexGame','GetDataInvoke'); } }
 
 initializeGame();
-
 </script>
 <script src="https://cdn.jsdelivr.net/gh/st39/sdk@main/api.js"></script>
 
-</body>
-</html>
+</body></html>
 
 ]]></Content>
 </Module>
