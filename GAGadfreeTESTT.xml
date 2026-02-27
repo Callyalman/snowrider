@@ -17,53 +17,71 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #231F20;
-    }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #231F20;
+  }
 
-    #unity-container {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
+  #unity-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
 
-    #unity-canvas {
-      width: 100%;
-      height: 100%;
-      background: #231F20;
-      display: block;
-    }
+  #unity-canvas {
+    width: 100%;
+    height: 100%;
+    background: #231F20;
+    display: block;
+  }
 
-    #loading-cover {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      background-color: #231F20;
-      z-index: 9999;
-    }
+  #loading-cover {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #231F20;
+    z-index: 9999;
+  }
 
-    #progress-container {
-      width: 40%;
-      height: 24px;
-      background: #555;
-      border: 1px solid #fff;
-      padding: 2px;
-    }
+  #progress-container {
+    width: 40%;
+    height: 24px;
+    background: #555;
+    border: 1px solid #fff;
+    padding: 2px;
+  }
 
-    #progress-fill {
-      width: 0%;
-      height: 100%;
-      background: white;
-      transition: width 0.2s;
-    }
+  #progress-fill {
+    width: 0%;
+    height: 100%;
+    background: white;
+    transition: width 0.2s;
+  }
+
+  /* BillyGoat Games™ Watermark */
+  #brand-watermark {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    background: rgba(0, 123, 255, 0.15);
+    border: 1px solid rgba(0, 123, 255, 0.4);
+    color: #4da6ff;
+    backdrop-filter: blur(6px);
+    z-index: 10002;
+    font-family: Arial, sans-serif;
+    pointer-events: none;
+  }
   </style><script type="text/javascript">
     window.SDK_OPTIONS = {
         gameId: "r2tzpy9cgrn2u4xgzc9z0zbtvxm16mby",
@@ -129,11 +147,13 @@
     <canvas id="unity-canvas" style="cursor: default;" width="787" height="511"></canvas>
   </div>
 
-  <div id="loading-cover" style="display: none;">
-    <div id="progress-container">
-      <div id="progress-fill" style="width: 100%;"></div>
-    </div>
+<div id="loading-cover" style="display: none;">
+  <div id="progress-container">
+    <div id="progress-fill" style="width: 100%;"></div>
   </div>
+</div>
+
+<div id="brand-watermark">BillyGoat Games™</div>
 
 <script>
 
