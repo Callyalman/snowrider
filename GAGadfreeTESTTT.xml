@@ -17,23 +17,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
-  /* BillyGoat Games™ Watermark */
-#brand-watermark {
-  position: fixed;
-  bottom: 15px;
-  left: 15px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 10px;
-  background: rgba(0, 123, 255, 0.15);
-  border: 1px solid rgba(0, 123, 255, 0.4);
-  color: #4da6ff;
-  backdrop-filter: blur(6px);
-  z-index: 10002;
-  font-family: Arial, sans-serif;
-  pointer-events: none; /* prevents blocking clicks */
-}
     html, body {
       margin: 0;
       height: 100%;
@@ -142,8 +125,6 @@
 
 
 <body>
-  <div id="loading-cover" style="display: none;">
-  <div id="brand-watermark">BillyGoat Games™</div>
   <div id="unity-container">
     <canvas id="unity-canvas" style="cursor: default;" width="787" height="511"></canvas>
   </div>
