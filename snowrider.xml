@@ -17,7 +17,7 @@
 <script src="https://cdn.jsdelivr.net/gh/era6yera6y/00@main/Build/UnityLoader.js"></script>
 
 <style>
-  /* BillyGoat Brand Badge */
+  /* BillyGoat Brand Button */
   #brand-text {
     position: fixed;
     bottom: 20px;
@@ -32,6 +32,12 @@
     backdrop-filter: blur(8px);
     z-index: 9999;
     font-family: Arial, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #brand-text:hover {
+    background: rgba(0, 123, 255, 0.25);
   }
 </style>
 
@@ -58,7 +64,12 @@ var gameInstance = UnityLoader.instantiate(
   </div>
 
   <!-- BillyGoat Games™ Badge -->
-  <div id="brand-text">BillyGoat Games™</div>
+  <a id="brand-text"
+   href="https://sites.google.com/view/billygoatgamesorg/home"
+   target="_blank"
+   rel="noopener noreferrer">
+   BillyGoat Games™
+</a>
 
 </body>
 </html>
