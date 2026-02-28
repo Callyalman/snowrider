@@ -38,6 +38,7 @@ html, body {
 }
 
 /* BillyGoat Games™ Watermark */
+/* BillyGoat Games™ Button */
 #brand-watermark {
   position: fixed;
   bottom: 15px;
@@ -52,7 +53,12 @@ html, body {
   backdrop-filter: blur(6px);
   z-index: 2000;
   font-family: Arial, sans-serif;
-  pointer-events: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#brand-watermark:hover {
+  background: rgba(0, 123, 255, 0.25);
 }
 </style>
 </head>
@@ -64,8 +70,13 @@ html, body {
 
 <div id="loading-cover"></div>
 
-<div id="brand-watermark">BillyGoat Games™</div>
-
+<a id="brand-watermark"
+   href="https://sites.google.com/view/billygoatgamesorg/home"
+   target="_blank"
+   rel="noopener noreferrer">
+   BillyGoat Games™
+</a>
+  
 <script>
 const buildUrl = "https://cdn.jsdelivr.net/gh/images-classroom-sources/ok@main/Build";
 const loaderUrl = buildUrl + "/v111.loader.js";
