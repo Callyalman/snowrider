@@ -66,22 +66,27 @@
   }
 
   /* BillyGoat Games™ Watermark */
-  #brand-watermark {
-    position: fixed;
-    bottom: 15px;
-    left: 15px;
-    padding: 6px 12px;
-    font-size: 13px;
+ /* BillyGoat Games™ Watermark */
+#brand-watermark {
+ position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
     font-weight: 600;
-    border-radius: 10px;
+    border-radius: 12px;
     background: rgba(0, 123, 255, 0.15);
     border: 1px solid rgba(0, 123, 255, 0.4);
     color: #4da6ff;
-    backdrop-filter: blur(6px);
-    z-index: 10002;
+    backdrop-filter: blur(8px);
+    z-index: 9999;
     font-family: Arial, sans-serif;
-    pointer-events: none;
-  }
+    text-decoration: none;
+    cursor: pointer;
+}
+  #brand-watermark:hover {
+  background: rgba(0, 123, 255, 0.25);
+}
   </style><script type="text/javascript">
     window.SDK_OPTIONS = {
         gameId: "r2tzpy9cgrn2u4xgzc9z0zbtvxm16mby",
@@ -153,7 +158,12 @@
   </div>
 </div>
 
-<div id="brand-watermark">BillyGoat Games™</div>
+<a id="brand-watermark"
+   href="https://sites.google.com/view/billygoatgamesorg/home"
+   target="_blank"
+   rel="noopener noreferrer">
+   BillyGoat Games™
+</a>
 
 <script>
 
